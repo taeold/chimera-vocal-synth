@@ -18,7 +18,7 @@ Claude can't hear audio and can't log in to sites. Everything else it can do.
 | Get the full MIDI from midiex, or a MuseScore file | yes (needs your login) | |
 | The original recording (mp3/m4a) of that part | yes, strongly recommended | can't download from YouTube or streaming |
 | The lyrics of that part, one line per phrase, marked by who sings: lead / second / together / (echo) | yes | doesn't write out song lyrics itself |
-| Ad-lib words ("우", "예", "오") | yes, if you know them | uses "우" otherwise |
+| Ad-lib words ("우", "예", "오") | yes, if you know them | uses "아" otherwise |
 | Find the parts, octaves, tempo and structure | | yes (from MIDI + recording) |
 | Melody files, rendering, pitch checks, mix, page, video | | yes |
 | Judge by ear: words, feel, levels | yes | measures only |
@@ -60,7 +60,7 @@ with separate tracks and the original recording.
 4. **Build the melody files** (`tools/korean/song-template/build.py` is the model, lyrics taken out; then
    `second.py` merges parts into two singers). Settings: legato (a note runs into the next unless the rest
    is over half a beat), the tune's syllables mapped onto the harmony by onset, echo words on
-   the echo channel, "우" for hums.
+   the echo channel, "아" for wordless high notes (the user's ad-lib words when known).
 5. **Render** with the branch's CLI: `chimera render notes part.json part <male|female> --tele part.tele`.
 6. **Check:** `tools/korean/pitchcheck.py` (notes within 50 cents; it misreads short notes measured on
    their consonant), `tools/korean/gaps.py` (dropouts inside phrases), `tools/korean/dips_by_onset.py`
@@ -79,7 +79,10 @@ values at its top: file paths (they point at `/tmp/...` working folders and at a
 
 - Two singers, like the record: the lead male, the second singer on the female voice. A male
   falsetto at B4-F5 measures cleaner on the female voice: 3 dB less breath noise above 5 kHz.
-- The second singer 2 dB above the lead while singing. Its breath above 5 kHz cut 6 dB.
+- The second singer 2 dB above the lead while singing, after its EQ and a 3:1 compressor
+  (threshold 0.08), which keeps its high notes from dipping. Its breath above 5 kHz cut 6 dB.
+- Wordless high notes on "아", not "우": [u] is dark and quiet. On the held B4 and F5, "아"
+  measured 14-16 dB more energy at 1-5 kHz than "우".
 - Reverb light: hall send 0.025, half that on the second singer.
 - The band 10 dB under the voices when it's the record's own instrumental. A MIDI band in
   General MIDI sounds needed more distance, and the user still called it too loud at 10.
@@ -107,6 +110,8 @@ values at its top: file paths (they point at `/tmp/...` working folders and at a
 - **Headless Chromium's audio clock runs fast.** Seek with the slider for screenshots, and use
   the fake clock in `record.cjs` for video.
 - **Onset correlation between synth and real voices is noise.** Check timing by pitch.
+- **The engine's female voice is quieter at its top** (F5 about 10 dB under its other held
+  notes on "우"). An open vowel and the compressor fix it; check long notes' levels by pitch.
 
 ## Known limits
 
