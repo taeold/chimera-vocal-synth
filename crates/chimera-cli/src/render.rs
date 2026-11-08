@@ -253,6 +253,7 @@ pub fn song(ctx: &Ctx, a: &[String]) -> Result<(), String> {
                 bpm: song.bpm,
                 t0: 0.3,
                 vibrato: 35.0,
+                consonants: 0.8,
             },
         );
         v.schedule(&plan.gestures);
@@ -508,6 +509,7 @@ pub fn notes(ctx: &Ctx, a: &[String]) -> Result<(), String> {
     let j: serde_json::Value = serde_json::from_str(&text).map_err(|e| format!("{input}: {e}"))?;
     let bpm = j["bpm"].as_f64().ok_or("bpm missing")?;
     let vibrato = j["vibrato"].as_f64().unwrap_or(35.0);
+    let consonants = j["consonants"].as_f64().unwrap_or(0.8);
     let raw: Vec<[f64; 2]> = serde_json::from_value(j["notes"].clone()).map_err(|e| format!("notes: {e}"))?;
     let g = g2p()?;
     let syl = lyrics_to_syllables(j["lyrics"].as_str().ok_or("lyrics missing")?, &g);
@@ -534,7 +536,7 @@ pub fn notes(ctx: &Ctx, a: &[String]) -> Result<(), String> {
         if phrase.is_empty() {
             return;
         }
-        let plan = plan_song(phrase, &SongOptions { body: body_name.into(), bpm, t0: start, vibrato });
+        let plan = plan_song(phrase, &SongOptions { body: body_name.into(), bpm, t0: start, vibrato, consonants });
         v.schedule(&plan.gestures);
         *end = js_max(*end, plan.end);
         phrase.clear();

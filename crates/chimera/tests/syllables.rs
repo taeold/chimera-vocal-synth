@@ -64,7 +64,7 @@ fn sung(text: &str) -> String {
 #[test]
 fn hangul_sings_one_syllable_per_block_with_korean_sound_rules() {
     assert_eq!(sung("빵야"), "baŋ.ja"); // ㅇ coda stays; tense ㅃ sings unaspirated
-    assert_eq!(sung("먹어"), "mʌ.gʌ"); // a coda moves onto a silent ㅇ, voiced between vowels
+    assert_eq!(sung("먹어"), "mʌ.ɣʌ"); // a coda moves onto a silent ㅇ, softened between vowels
     assert_eq!(sung("좋아"), "tʃo.a"); // ㅎ drops before a vowel
     assert_eq!(sung("좋다"), "tʃo.ta"); // ㅎ + ㄷ aspirates
     assert_eq!(sung("국물"), "kuŋ.mul"); // nasalisation
@@ -74,6 +74,14 @@ fn hangul_sings_one_syllable_per_block_with_korean_sound_rules() {
     assert_eq!(sung("사랑해"), "sa.ɾaŋ.ɦɛ");
     assert_eq!(sung("닭"), "tak");
     assert_eq!(sung("의사"), "ɰi.sa");
+}
+
+#[test]
+fn hangul_softens_across_spaces_within_a_phrase_but_not_across_a_breath() {
+    assert_eq!(sung("추억이 되고"), "tʃu.ʌ.ɣi.ðwe.ɣo"); // 되 follows a vowel, though in the next word
+    assert_eq!(sung("날을 기억하며"), "na.ɾɯl.ɣi.ʌ.ka.mjʌ"); // after a voiced coda; 억+하 aspirates
+    assert_eq!(sung("추억이, 되고"), "tʃu.ʌ.ɣi.twe.ɣo"); // a comma is a breath: 되 starts fresh
+    assert_eq!(sung("우 후회"), "u.ɦu.ɦwe");
 }
 
 #[test]

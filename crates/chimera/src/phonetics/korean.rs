@@ -6,6 +6,8 @@
 //!
 //! The engine has no tense (fortis) stops, so tense ㄲ ㄸ ㅃ ㅉ sing as unaspirated (voiced) stops,
 //! and lax and aspirated stops both take the planner's aspiration. ㅅ before [i] or [j] is [ʃ].
+//! Between voiced sounds, within a phrase and across its spaces, lax ㄱ ㄷ ㅂ ㅈ soften to [ɣ ð β ʒ]
+//! and ㅎ to [ɦ].
 
 use super::{Segment, Syllable};
 
@@ -155,16 +157,18 @@ fn join(a: &mut Block, b: &mut Block) {
 
 fn onset_ipa(o: char, voiced_before: bool, front: bool, after_l: bool) -> &'static str {
     match o {
-        'ㄱ' if voiced_before => "g",
+        // lax stops between voiced sounds soften to fricatives, as they do in fluent speech and
+        // song (the engine's stops close fully, so a voiced stop here would be a gap)
+        'ㄱ' if voiced_before => "ɣ",
         'ㄱ' | 'ㅋ' => "k",
         'ㄲ' => "g",
-        'ㄷ' if voiced_before => "d",
+        'ㄷ' if voiced_before => "ð",
         'ㄷ' | 'ㅌ' => "t",
         'ㄸ' => "d",
-        'ㅂ' if voiced_before => "b",
+        'ㅂ' if voiced_before => "β",
         'ㅂ' | 'ㅍ' => "p",
         'ㅃ' => "b",
-        'ㅈ' if voiced_before => "dʒ",
+        'ㅈ' if voiced_before => "ʒ",
         'ㅈ' | 'ㅊ' => "tʃ",
         'ㅉ' => "dʒ",
         'ㅅ' | 'ㅆ' if front => "ʃ",
@@ -193,7 +197,9 @@ fn coda_ipa(c: char) -> &'static str {
 }
 
 /// One word of Hangul (a run of blocks) → its sung syllables, the last marked as the word's end.
-pub fn word_syllables(word: &str) -> Vec<Syllable> {
+/// `voiced_before`: the phrase runs into this word from a vowel or a voiced coda, so its first
+/// consonant is in a voiced context too (connected speech).
+pub fn word_syllables(word: &str, voiced_before: bool) -> Vec<Syllable> {
     let mut blocks: Vec<Block> = word.chars().filter(|&c| is_hangul(c)).map(decompose).collect();
     for i in 1..blocks.len() {
         let (l, r) = blocks.split_at_mut(i);
@@ -205,7 +211,7 @@ pub fn word_syllables(word: &str) -> Vec<Syllable> {
     let mut out = Vec::with_capacity(blocks.len());
     for (i, b) in blocks.iter().enumerate() {
         let prev_coda = if i > 0 { blocks[i - 1].coda.last().copied() } else { None };
-        let voiced_before = i > 0 && prev_coda.is_none_or(|c| matches!(c, 'ㄴ' | 'ㄹ' | 'ㅁ' | 'ㅇ'));
+        let voiced_before = if i == 0 { voiced_before } else { prev_coda.is_none_or(|c| matches!(c, 'ㄴ' | 'ㄹ' | 'ㅁ' | 'ㅇ')) };
         let front = b.vowel == "i" && b.glide != "w" || b.glide == "j";
         let mut onset: Vec<Segment> = b.onset.map(|o| Segment::new(onset_ipa(o, voiced_before, front, prev_coda == Some('ㄹ')))).into_iter().collect();
         // ㅢ after a consonant is plain [i] (희 → 히)

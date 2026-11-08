@@ -206,7 +206,11 @@ pub fn lyrics_to_syllables(text: &str, g2p: &impl WordSource) -> Vec<Syllable> {
             continue;
         }
         if tok.starts_with(is_hangul) {
-            out.extend(word_syllables(tok));
+            // within a phrase, a vowel or a voiced coda carries into the next word
+            let voiced = out.last().is_some_and(|l| {
+                l.text.starts_with(is_hangul) && !l.phrase_end && l.coda.iter().all(|c| matches!(c.ipa.as_str(), "n" | "l" | "m" | "ŋ"))
+            });
+            out.extend(word_syllables(tok, voiced));
             continue;
         }
         // typed hyphens split syllables explicitly ("ti-ger"); otherwise the dictionary decides
