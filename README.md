@@ -57,6 +57,8 @@ bun tools/spectrogram.ts in.wav out.png
   speakers, phone by phone (the TSP speech database).
 - [docs/hill-climb/](docs/hill-climb/): the rules and log for tuning the voice one measured
   step at a time.
+- [docs/korean-songs.md](docs/korean-songs.md): a recipe for singing a Korean song as a duet video,
+  from a MIDI, the lyrics and the original recording.
 
 Agents: see [AGENTS.md](AGENTS.md).
 
